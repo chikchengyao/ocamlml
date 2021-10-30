@@ -1,7 +1,5 @@
 open! Core
 
-module Biases = struct end
-
 type t = {
   layers : int list;
   weights : Matrix.t list;
