@@ -6,6 +6,8 @@ include Stringable.S with type t := t
 
 val create : int -> init:(unit -> float) -> t
 
+val map : t -> f:(float -> float) -> t
+
 val sum : t -> t -> t Or_diff.t
 
 val hadamard : t -> t -> t Or_diff.t

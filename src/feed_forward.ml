@@ -27,7 +27,8 @@ let run t ~input =
       let open Or_diff.Let_syntax in
       let%bind acc = acc in
       let%bind a = Matrix.product weight acc in
-      Vector.sum a bias)
+      let%map z = Vector.sum a bias in
+      Vector.map z ~f:t.activation)
   |> Or_diff.of_unequal_lengths |> Or_diff.join
 
 let%expect_test "basic run" =

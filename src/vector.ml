@@ -20,3 +20,5 @@ let hadamard = combine ~f:( *. )
 let dot t1 t2 =
   List.fold2 t1 t2 ~init:0. ~f:(fun acc x1 x2 -> acc +. (x1 *. x2))
   |> Or_diff.of_unequal_lengths
+
+let map = List.map
