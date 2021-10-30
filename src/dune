@@ -1,0 +1,6 @@
+(library
+ (inline_tests)
+ (name ocamlml)
+ (libraries core)
+ (preprocess
+  (pps ppx_expect ppx_inline_test ppx_let ppx_sexp_conv ppx_sexp_message)))
