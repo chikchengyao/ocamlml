@@ -10,12 +10,9 @@ module Vector = struct
 
   let create x ~init = List.init x ~f:(fun _ -> init ())
 
-  let combine_exn t1 t2 ~f =
-    List.fold2_exn t1 t2 ~init:[] ~f:(fun acc x1 x2 -> f x1 x2 :: acc)
+  let sum_exn = List.map2_exn ~f:( +. )
 
-  let sum_exn = combine_exn ~f:( +. )
-
-  let hadamard_exn = combine_exn ~f:( *. )
+  let hadamard_exn = List.map2_exn ~f:( *. )
 
   let dot_exn t1 t2 =
     List.fold2_exn t1 t2 ~init:0. ~f:(fun acc x1 x2 -> acc +. (x1 *. x2))
@@ -32,8 +29,14 @@ module Matrix = struct
 
   let create x y ~init = List.init y ~f:(fun _ -> Vector.create x ~init)
 
+  let scale t ~k = List.map t ~f:(Vector.scale ~k)
+
+  let sum_exn t1 t2 = List.map2_exn t1 t2 ~f:Vector.sum_exn
+
   let product_exn matrix vector =
-    List.map matrix ~f:(fun v -> Vector.dot_exn vector v)
+    List.map matrix ~f:(fun v ->
+        (* print_s [%message (vector : Vector.t) (v : Vector.t)]; *)
+        Vector.dot_exn vector v)
 
   let transpose matrix =
     match matrix with
@@ -52,6 +55,4 @@ module Matrix = struct
     [%expect "(tm ((0 4 8) (1 5 9) (2 6 10) (3 7 11)))"]
 
   let v_times_vT v1 v2 = List.map v2 ~f:(fun float -> Vector.scale v1 ~k:float)
-
-  let scale t ~k = List.map t ~f:(Vector.scale ~k)
 end

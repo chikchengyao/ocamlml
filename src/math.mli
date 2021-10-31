@@ -27,6 +27,8 @@ module Matrix : sig
 
   val scale : t -> k:float -> t
 
+  val sum_exn : t -> t -> t
+
   val product_exn : t -> Vector.t -> Vector.t
 
   val transpose : t -> t
