@@ -1,13 +1,5 @@
 open! Core
 
-module Or_diff : sig
-  type 'a t = Same of 'a | Different_dimensions [@@deriving sexp]
-
-  include Monad.S with type 'a t := 'a t
-
-  val of_unequal_lengths : 'a List.Or_unequal_lengths.t -> 'a t
-end
-
 module Vector : sig
   type t [@@deriving sexp]
 
@@ -17,15 +9,15 @@ module Vector : sig
 
   val map : t -> f:(float -> float) -> t
 
-  val sum : t -> t -> t Or_diff.t
+  val sum_exn : t -> t -> t
 
-  val hadamard : t -> t -> t Or_diff.t
+  val hadamard_exn : t -> t -> t
 
-  val dot : t -> t -> float Or_diff.t
+  val dot_exn : t -> t -> float
 
-  module For_testing : sig
-    val of_list : float list -> t
-  end
+  val scale : t -> k:float -> t
+
+  val of_list : float list -> t
 end
 
 module Matrix : sig
@@ -33,7 +25,11 @@ module Matrix : sig
 
   val create : int -> int -> init:(unit -> float) -> t
 
-  val product : t -> Vector.t -> Vector.t Or_diff.t
+  val scale : t -> k:float -> t
+
+  val product_exn : t -> Vector.t -> Vector.t
 
   val transpose : t -> t
+
+  val v_times_vT : Vector.t -> Vector.t -> t
 end
