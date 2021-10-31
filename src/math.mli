@@ -34,4 +34,6 @@ module Matrix : sig
   val create : int -> int -> init:(unit -> float) -> t
 
   val product : t -> Vector.t -> Vector.t Or_diff.t
+
+  val transpose : t -> t
 end
