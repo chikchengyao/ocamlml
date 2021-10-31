@@ -1,4 +1,5 @@
 open! Core
+open Math
 
 type t = {
   layers : int list;
@@ -35,6 +36,6 @@ let%expect_test "basic run" =
   let t =
     create [ 2; 2 ] ~init:(fun () -> 0.5) ~activation:Fn.id ~activation':Fn.id
   in
-  let res = run t ~input:[ 0.5; 0.5 ] in
+  let res = run t ~input:(Vector.For_testing.of_list [ 0.5; 0.5 ]) in
   print_s [%message (res : Vector.t Or_diff.t)];
   [%expect "(res (Same (1 1)))"]
