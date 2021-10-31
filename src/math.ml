@@ -1,12 +1,7 @@
 open! Core
 
 module Vector = struct
-  module T = struct
-    type t = float list [@@deriving sexp]
-  end
-
-  include T
-  include Sexpable.To_stringable (T)
+  type t = float list [@@deriving sexp]
 
   let create x ~init = List.init x ~f:(fun _ -> init ())
 

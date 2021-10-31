@@ -3,9 +3,11 @@ open! Core
 module Vector : sig
   type t [@@deriving sexp]
 
-  include Stringable.S with type t := t
-
   val create : int -> init:(unit -> float) -> t
+
+  val of_list : float list -> t
+
+  val scale : t -> k:float -> t
 
   val map : t -> f:(float -> float) -> t
 
@@ -14,10 +16,6 @@ module Vector : sig
   val hadamard_exn : t -> t -> t
 
   val dot_exn : t -> t -> float
-
-  val scale : t -> k:float -> t
-
-  val of_list : float list -> t
 end
 
 module Matrix : sig
@@ -27,11 +25,11 @@ module Matrix : sig
 
   val scale : t -> k:float -> t
 
+  val transpose : t -> t
+
   val sum_exn : t -> t -> t
 
   val product_exn : t -> Vector.t -> Vector.t
-
-  val transpose : t -> t
 
   val v_times_vT : Vector.t -> Vector.t -> t
 end

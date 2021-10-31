@@ -2,7 +2,6 @@ open! Core
 open Math
 
 type t = {
-  layers : int list;
   weights : Matrix.t list;
   biases : Vector.t list;
   activation : Vector.t -> Vector.t; [@sexp_opaque]
@@ -21,7 +20,6 @@ let create layers ~init ~activation ~activation' =
     List.map (List.drop layers 1) ~f:(fun n -> Vector.create n ~init)
   in
   {
-    layers;
     weights = make_weights layers;
     biases;
     activation = Vector.map ~f:activation;
