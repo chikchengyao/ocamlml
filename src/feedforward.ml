@@ -19,12 +19,7 @@ let create layers ~init ~activation ~activation' =
   let biases =
     List.map (List.drop layers 1) ~f:(fun n -> Vector.create n ~init)
   in
-  {
-    weights = make_weights layers;
-    biases;
-    activation = Vector.map ~f:activation;
-    activation' = Vector.map ~f:activation';
-  }
+  { weights = make_weights layers; biases; activation; activation' }
 
 let run_exn t ~input =
   List.fold2_exn t.weights t.biases ~init:input ~f:(fun acc weight bias ->
@@ -94,43 +89,40 @@ let run_and_backpropagate_exn t ~input ~cost' ~step =
   in
   ({ t with biases; weights }, output)
 
-let%expect_test "backpropagate iterated 2:2" =
-  let sigma x = 1. /. (1. +. Float.exp (-.x)) in
-  let sigma' x =
-    let s = sigma x in
-    s *. (1. -. s)
+let train_exn t ~inputs ~outputs ~cost' ~step =
+  List.fold2_exn inputs outputs ~init:(1, t) ~f:(fun (i, t) input output ->
+      let cost' = cost' ~expected:output in
+      let step = step ~i in
+      let t, _ = run_and_backpropagate_exn t ~input ~cost' ~step in
+      (i + 1, t))
+  |> snd
+
+let%expect_test "train" =
+  let s x = 1. /. (1. +. Float.exp (-.x)) in
+  let activation = Vector.map ~f:s in
+  let activation' =
+    Vector.map ~f:(fun v ->
+        let v' = s v in
+        v' *. (1. -. v'))
   in
   let input = Vector.of_list [ 0.2; 0.8 ] in
-
-  let cost' ~output =
-    let target = Vector.of_list [ 0.8; 0.2 ] in
-    let negative_target = Vector.scale target ~k:(-1.) in
-    Vector.sum_exn output negative_target
+  let output = Vector.of_list [ 0.8; 0.2 ] in
+  let cost' ~expected ~output =
+    Vector.sum_exn output (Vector.scale expected ~k:(-1.))
   in
-
-  let runtest t max =
-    let rec iter t n =
-      if n > max then t
-      else
-        let step = 1. /. Float.sqrt (Float.of_int n) in
-        let t, _ = run_and_backpropagate_exn t ~input ~cost' ~step in
-        iter t (n + 1)
-    in
-    iter t 1
+  let step ~i = 1. /. Float.sqrt (Float.of_int i) in
+  let runtest layers n =
+    let t = create layers ~init:(Fn.const 0.5) ~activation ~activation' in
+    let inputs = List.init n ~f:(Fn.const input) in
+    let outputs = List.init n ~f:(Fn.const output) in
+    let t = train_exn t ~inputs ~outputs ~cost' ~step in
+    let output = run_exn t ~input in
+    print_s [%message (output : Vector.t)]
   in
-  let t1 =
-    create [ 2; 2 ] ~init:(fun () -> 0.5) ~activation:sigma ~activation':sigma'
-  in
-  let t1' = runtest t1 100000 in
-  let t1'_out = run_exn t1' ~input in
-  print_s [%message (t1'_out : Vector.t)];
-  [%expect "(t1'_out (0.79999999999989224 0.20000000000021195))"];
-  let t2 =
-    create [ 2; 4; 3; 2 ]
-      ~init:(fun () -> 0.5)
-      ~activation:sigma ~activation':sigma'
-  in
-  let t2' = runtest t2 1000 in
-  let t2'_out = run_exn t2' ~input in
-  print_s [%message (t2'_out : Vector.t)];
-  [%expect "(t2'_out (0.80057834665312355 0.20087002842648508))"]
+  runtest [ 2; 2 ] 100;
+  runtest [ 2; 4; 3; 2 ] 100;
+  [%expect
+    {|
+    (output (0.77607278089025122 0.297703317678373))
+    (output (0.818659281733572 0.24360293858429807))
+    |}]
